@@ -890,9 +890,9 @@ namespace UnityModManagerNet.Installer
                         }
 
                         Log.Print($"Copying files to game...");
-                        var arch = Utils.UnmanagedDllIs64Bit(gameExePath);
+                        var arch = Utils.WindowsFileIs64Bit(gameExePath);
                         if (arch == null && !string.IsNullOrEmpty(unityPlayerPath))
-                            arch = Utils.UnmanagedDllIs64Bit(unityPlayerPath);
+                            arch = Utils.WindowsFileIs64Bit(unityPlayerPath);
                         var filename = arch == true ? "winhttp_x64.dll" : "winhttp_x86.dll";
                         Log.Print($"  '{filename}'");
                         File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filename), doorstopPath, true);

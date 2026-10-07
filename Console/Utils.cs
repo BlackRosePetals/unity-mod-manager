@@ -491,10 +491,18 @@ namespace UnityModManagerNet.ConsoleInstaller
 
         public static string FindMacOSAppExecutable(string appPath)
         {
-            if (!Directory.Exists(appPath)) return null;
+            if (!Directory.Exists(appPath))
+            {
+                Log.Print($"Directory {appPath} does not exist");
+                return null;
+            }
 
             var macosPath = Path.Combine(appPath, "Contents/MacOS");
-            if (!Directory.Exists(macosPath)) return null;
+            if (!Directory.Exists(macosPath))
+            {
+                Log.Print($"Directory {macosPath} does not exist");
+                return null;
+            }
 
             var files = Directory.GetFiles(macosPath);
 
@@ -509,6 +517,11 @@ namespace UnityModManagerNet.ConsoleInstaller
                     return file;
             }
 
+            if (files.Length > 0)
+            {
+                Log.Print("List of Contents/MacOS/ files:");
+                Log.Print(string.Join("\n", files.Select(Path.GetFileName)));
+            }
             return null;
         }
 
@@ -603,7 +616,7 @@ namespace UnityModManagerNet.ConsoleInstaller
             IMAGE_FILE_MACHINE_WCEMIPSV2 = 0x169,
         }
 
-        public static MachineType GetDllMachineType(string dllPath)
+        private static MachineType GetDllMachineType(string dllPath)
         {
             // See http://www.microsoft.com/whdc/system/platform/firmware/PECOFF.mspx
             // Offset to PE header is always at 0x3C.
@@ -626,7 +639,7 @@ namespace UnityModManagerNet.ConsoleInstaller
             return machineType;
         }
 
-        public static bool? UnmanagedDllIs64Bit(string dllPath)
+        public static bool? WindowsFileIs64Bit(string dllPath)
         {
             try
             {
@@ -649,16 +662,26 @@ namespace UnityModManagerNet.ConsoleInstaller
             }
         }
 
-        //[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        //public static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, SymbolicLink dwFlags);
+        //[DllImport("libc", SetLastError = true)]
+        //private static extern int chmod(string pathname, uint mode);
 
-        //public enum SymbolicLink
+        //[DllImport("libc", SetLastError = true)]
+        //private static extern int chmod(byte[] pathname, uint mode);
+
+        //public static bool MakeExecutable(string filePath)
         //{
-        //    File = 0,
-        //    Directory = 1
-        //}
+        //    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(filePath + "\0");
 
-        //[DllImport("kernel32.dll")]
-        //public static extern uint GetLastError();
+        //    uint mode = 0x01C0 | 0x0020 | 0x0008 | 0x0004 | 0x0001;  // 755
+
+        //    int result = chmod(bytes, mode);
+        //    if (result != 0)
+        //    {
+        //        int errno = Marshal.GetLastWin32Error();
+        //        Log.Print($"chmod exited with error, errno = {errno}");
+        //        return false;
+        //    }
+        //    return true;
+        //}
     }
 }

@@ -407,8 +407,19 @@ namespace UnityModManagerNet.ConsoleInstaller
 
             if (string.IsNullOrEmpty(gameExePath) || !File.Exists(gameExePath))
             {
+                if (!string.IsNullOrEmpty(selectedGame.GameExe))
+                    Log.Print($"The executable file was not found.");
+
                 gameExePath = Utils.FindUnityGameExecutable(gamePath);
-                Log.Print($"The executable file is auto-defined as {gameExePath}");
+                if (string.IsNullOrEmpty(gameExePath))
+                {
+                    if (string.IsNullOrEmpty(selectedGame.GameExe))
+                        Log.Print($"The executable file was not found.");
+
+                    Close();
+                    return;
+                }
+                Log.Print($"The executable file is auto-defined as {gameExePath}.");
             }
 
             if (gameExePath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
@@ -930,7 +941,7 @@ namespace UnityModManagerNet.ConsoleInstaller
                         Log.Print($"Copying files to game...");
                         if (gamePlatform == OSPlatform.Windows)
                         {
-                            var arch = Utils.UnmanagedDllIs64Bit(gameExePath);
+                            var arch = Utils.WindowsFileIs64Bit(gameExePath);
                             var filename = arch == true ? "winhttp_x64.dll" : "winhttp_x86.dll";
                             Log.Print($"  '{filename}'");
                             File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filename), doorstopPath, true);
@@ -946,10 +957,15 @@ namespace UnityModManagerNet.ConsoleInstaller
                             File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filename), doorstopPath, true);
                             Log.Print($"  '{Path.GetFileName(doorstopConfigPath)}'");
                             var relativeManagerAssemblyPath = managerAssemblyPath.Substring(gamePath.Length).Trim(Path.DirectorySeparatorChar);
+
+                            // Setting the paths to UnityModManager.dll and to the executable file in the UnityDoorstop configuration file.
                             var configText = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.GetFileName(doorstopConfigPath)));
                             configText = Regex.Replace(configText, @"target_assembly=""Doorstop.dll""", $"target_assembly=\"{relativeManagerAssemblyPath}\"", RegexOptions.Multiline);
                             configText = Regex.Replace(configText, @"executable_name=""""", $"executable_name=\"{Path.GetFileName(gameExePath)}\"", RegexOptions.Multiline);
                             File.WriteAllText(doorstopConfigPath, configText);
+
+                            // Setting execution rights, but only the user can launch it. VirusTotal is flagging it.
+                            //Utils.MakeExecutable(doorstopConfigPath);
                         }
                         else if (gamePlatform == OSPlatform.OSX)
                         {
@@ -957,11 +973,16 @@ namespace UnityModManagerNet.ConsoleInstaller
                             Log.Print($"  '{filename}'");
                             File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filename), doorstopPath, true);
                             Log.Print($"  '{Path.GetFileName(doorstopConfigPath)}'");
-                            var relativeManagerAssemblyPath = managerAssemblyPath.Substring(gamePath.Length).Trim(Path.DirectorySeparatorChar);
+                            //var relativeManagerAssemblyPath = managerAssemblyPath.Substring(gamePath.Length).Trim(Path.DirectorySeparatorChar);
+
+                            // Setting the paths to UnityModManager.dll and to the executable file in the UnityDoorstop configuration file.
                             var configText = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.GetFileName(doorstopConfigPath)));
-                            configText = Regex.Replace(configText, @"target_assembly=""Doorstop.dll""", $"target_assembly=\"{relativeManagerAssemblyPath}\"", RegexOptions.Multiline);
-                            configText = Regex.Replace(configText, @"executable_name=""""", $"executable_name=\"{Path.GetFileName(gamePath)}\"", RegexOptions.Multiline);
+                            configText = Regex.Replace(configText, @"target_assembly=""Doorstop.dll""", $"target_assembly=\"Contents/Resources/Data/Managed/UnityModManager/UnityModManager.dll\"", RegexOptions.Multiline);
+                            configText = Regex.Replace(configText, @"executable_name=""""", $"executable_name=\"Contents/MacOS/{Path.GetFileName(gameExePath)}\"", RegexOptions.Multiline);
                             File.WriteAllText(doorstopConfigPath, configText);
+
+                            // Setting execution rights, but only the user can launch it. VirusTotal is flagging it.
+                            //Utils.MakeExecutable(doorstopConfigPath);
                         }
                         DoactionLibraries(Actions.Install);
                         DoactionGameConfig(Actions.Install);

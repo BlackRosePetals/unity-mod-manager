@@ -724,6 +724,10 @@ namespace UnityModManagerNet
                                 {
                                     GUILayout.BeginHorizontal(colWidth[++col]);
                                     mJoinList.Clear();
+                                    if (!string.IsNullOrEmpty(mods[i].CustomRequirements))
+                                    {
+                                        mJoinList.Add(mods[i].CustomRequirements);
+                                    }
                                     foreach (var item in mods[i].Requirements)
                                     {
                                         var id = item.Key;

@@ -22,8 +22,8 @@
 
   <ItemGroup>
     <PackageReference Include="dnlib" Version="3.1.0" ExcludeAssets="All" GeneratePathProperty="true" />
-    <PackageReference Include="Lib.Harmony" Version="2.3.6.0" ExcludeAssets="All" GeneratePathProperty="true" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+    <PackageReference Include="Lib.Harmony" Version="2.4.3" ExcludeAssets="All" GeneratePathProperty="true" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Ionic.Zip-1.9.1.8" Version="1.9.1.8" />
   </ItemGroup>
 
